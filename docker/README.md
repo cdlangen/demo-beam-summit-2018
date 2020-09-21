@@ -6,7 +6,7 @@ You need to build a couple of images for this dockerized Beam on Flink setup.
 
 First, checkout `release-2.13.0` of Apache Beam by running
 ```
-git clone git@github.com:apache/beam.git
+git clone https://github.com/cdlangen/demo-beam-summit-2018.git
 git checkout origin/release-2.13.0
 ```
 **Note:** Due to a bug in Beam 2.13.0 you need to checkout a branch containing a workaround (e.g. https://github.com/mxm/beam/tree/cross-language-kafka) in order to use external KafkaIOs.
