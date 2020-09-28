@@ -1,29 +1,40 @@
-version: "2.1"
+version: "2.2"
 services:
-  flink-job-server:
-    image: beam/flink-job-server:2.13.0
-    depends_on:
-      - jobmanager
-    volumes:
-     - beam-artifacts-staging-volume:/tmp/beam-artifact-staging
-    network_mode: "host"  # need use host networking for the SDK harness container to reach to taskmanager under localhost
-    command:  ["--flink-master-url=localhost:8081", "--artifacts-dir=/tmp/beam-artifact-staging" ]
-    environment: 
-     - USER=${USER} # needed due to https://issues.apache.org/jira/browse/BEAM-7084 to find correct Java SDK Harness image
+#  flink-job-server:
+#    image: apache/beam_flink1.10_job_server:latest
+#    user: "1000:1000"
+#    depends_on:
+#      - jobmanager
+#    volumes:
+#      - beam-artifacts-staging-volume:/tmp/beam-artifact-staging
+#    network_mode: "host"  # need use host networking for the SDK harness container to reach to taskmanager under localhost
+#    command:  ["--flink-master=localhost:8081", "--artifacts-dir=/tmp/beam-artifact-staging" ]
   jobmanager:
-    image: flink:1.8.0-scala_2.11
+    #    image: flink:1.10.0-scala_2.11
+    build: .
+    ports:
+      - "8081:8081"
+      - "6123:6123"
     command: jobmanager
     network_mode: "host" # need use host networking for the SDK harness container to reach to taskmanager under localhost
     environment:
-    - JOB_MANAGER_RPC_ADDRESS=localhost
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: localhost
+        jobmanager.memory.jvm-metaspace.size: 1024m
   taskmanager:
-    image: flink-with-docker:1.8.0-scala_2.11
+#    image: flink:1.10.0-scala_2.11
+    build: .
+    user: "1000:1000"
     network_mode: "host"  # need use host networking for the SDK harness container to reach to taskmanager under localhost
     depends_on:
     - jobmanager
     command: taskmanager
     environment:
-    - JOB_MANAGER_RPC_ADDRESS=localhost
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: localhost
+        taskmanager.numberOfTaskSlots: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # needs access to docker-socket of host machine
       - beam-artifacts-staging-volume:/tmp/beam-artifact-staging
